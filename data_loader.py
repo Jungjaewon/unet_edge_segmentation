@@ -1,9 +1,6 @@
 import os
 import os.path as osp
 import glob
-import numpy as np
-import torch
-import cv2
 
 from torch.utils import data
 from torchvision import transforms as T
@@ -16,18 +13,26 @@ class DataSet(data.Dataset):
         self.img_transform = img_transform
         self.img_dir = osp.join(config['TRAINING_CONFIG']['IMG_DIR'], config['TRAINING_CONFIG']['MODE'])
         self.img_size = (config['MODEL_CONFIG']['IMG_SIZE'], config['MODEL_CONFIG']['IMG_SIZE'], 3)
-        self.threshold = config['TRAINING_CONFIG']['THRESH']
+        self.domain = config['TRAINING_CONFIG']['DOMAIN']
 
-        self.data_list = glob.glob(os.path.join(self.img_dir, '*.png'))
+        if self.domain == 'ch':
+            self.data_list = glob.glob(os.path.join(self.img_dir, '*.png'))
+        else:
+            self.data_list = glob.glob(os.path.join(self.img_dir, '*.jpg'))
+
         self.data_list = [x.split(os.sep)[-1].split('_')[0] for x in self.data_list]
         #self.data_list = list(set(self.data_list))
 
     def __getitem__(self, index):
         file_name = self.data_list[index]
-        image = Image.open(osp.join(self.img_dir, f'{file_name}_color.png')).convert('RGB')
-        mask = cv2.imread(osp.join(self.img_dir, f'{file_name}_sketch.png'), cv2.IMREAD_GRAYSCALE)
-        mask = np.where(mask > self.threshold, 1, 0)
-        return self.img_transform(image), torch.from_numpy(mask).long()
+
+        if self.domain == 'ch':
+            image = Image.open(osp.join(self.img_dir, f'{file_name}_color.png')).convert('RGB')
+            edge = Image.open(osp.join(self.img_dir, f'{file_name}_sketch.png')).convert('RGB')
+        else:
+            image = Image.open(osp.join(self.img_dir, f'{file_name}.jpg')).convert('RGB')
+            edge = Image.open(osp.join(self.img_dir, f'{file_name}_edge.jpg')).convert('RGB')
+        return self.img_transform(image), self.img_transform(edge)
 
     def __len__(self):
         """Return the number of images."""

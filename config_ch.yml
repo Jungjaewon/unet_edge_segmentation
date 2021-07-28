@@ -5,11 +5,12 @@ MODEL_CONFIG:
 TRAINING_CONFIG:
 
   EPOCH: 100
-  BATCH_SIZE: 2
-  THRESH : 128
+  DOMAIN : 'ch' # bags
+  BATCH_SIZE: 32
+
 
   # lr and lambda
-  LR : 10e-4
+  LR : 5e-5
   LAMBDA_CLS  : 1.0
 
   # Optimizer
@@ -25,7 +26,7 @@ TRAINING_CONFIG:
   USE_TENSORBOARD : 'False' # 'True' or 'False'
 
   # Directory
-  IMG_DIR : 'C:\Users\woodc\Desktop\deep_paint_split' #'data'
+  IMG_DIR : 'deep_paint_split' #'data'
   TRAIN_DIR : 'edge_segmentation_tutorial'
   LOG_DIR : 'logs'
   SAMPLE_DIR : 'samples'

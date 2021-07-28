@@ -7,6 +7,7 @@ import glob
 import os.path as osp
 
 from model import Unet
+from torchvision.utils import save_image
 
 
 class Solver(object):
@@ -31,7 +32,7 @@ class Solver(object):
         #torch.manual_seed(config['TRAINING_CONFIG']['CPU_SEED'])
         #torch.cuda.manual_seed_all(config['TRAINING_CONFIG']['GPU_SEED'])
 
-        self.loss = nn.CrossEntropyLoss()
+        self.loss = nn.L1Loss()
 
         self.gpu = config['TRAINING_CONFIG']['GPU']
         self.use_tensorboard = config['TRAINING_CONFIG']['USE_TENSORBOARD']
@@ -56,9 +57,9 @@ class Solver(object):
             self.build_tensorboard()
 
     def build_model(self):
-        self.model = Unet(n_channels=3, n_classes=2).to(self.gpu)
+        self.model = Unet(n_channels=3, n_classes=3).to(self.gpu)
         self.optimizer = torch.optim.Adam(self.model.parameters(), self.lr, (self.beta1, self.beta2))
-        self.print_network(self.model, 'G')
+        self.print_network(self.model, 'Model')
 
     def print_network(self, model, name):
         """Print out the network information."""
@@ -79,10 +80,10 @@ class Solver(object):
         from logger import Logger
         self.logger = Logger(self.log_dir)
 
-    def update_lr(self, g_lr, d_lr):
+    def update_lr(self, lr):
         """Decay learning rates of the generator and discriminator."""
         for param_group in self.optimizer.param_groups:
-            param_group['lr'] = g_lr
+            param_group['lr'] = lr
 
     def reset_grad(self):
         """Reset the gradient buffers."""
@@ -116,12 +117,10 @@ class Solver(object):
         print('iterations : ', iterations)
         # Fetch fixed inputs for debugging.
         data_iter = iter(data_loader)
-        fixed_image, fixed_mask = next(data_iter)
+        fixed_image, fixed_edge = next(data_iter)
 
         fixed_image = fixed_image.to(self.gpu)
-        fixed_mask = fixed_mask.to(self.gpu)
-
-        lr = self.lr
+        fixed_edge = fixed_edge.to(self.gpu)
 
         start_epoch = self.restore_model()
         start_time = time.time()
@@ -130,25 +129,24 @@ class Solver(object):
 
             for i in range(iterations):
                 try:
-                    images, masks = next(data_iter)
+                    images, edge = next(data_iter)
                 except:
                     data_iter = iter(data_loader)
-                    images, masks = next(data_iter)
+                    images, edge = next(data_iter)
 
                 images = images.to(self.gpu)
-                masks = masks.to(self.gpu)
+                edge = edge.to(self.gpu)
 
                 loss_dict = dict()
 
-                pred_masks = self.model(images)
-
-                loss = self.loss(pred_masks, masks)
+                pred_edge = self.model(images)
+                loss = self.loss(pred_edge, edge)
 
                 self.reset_grad()
                 loss.backward()
                 self.optimizer.step()
 
-                loss_dict['cls_loss'] = loss.item()
+                loss_dict['loss'] = loss.item()
 
                 if (i + 1) % self.log_step == 0:
                     et = time.time() - start_time
@@ -160,12 +158,19 @@ class Solver(object):
 
             if (e + 1) % self.sample_step == 0:
                 with torch.no_grad():
-                    pass
+                    image_report = list()
+                    image_report.append(fixed_image)
+                    image_report.append(fixed_edge)
+                    image_report.append(self.model(fixed_image))
+                    x_concat = torch.cat(image_report, dim=3)
+                    sample_path = osp.join(self.sample_dir, '{}-images.jpg'.format(str(e + 1).zfill(len(str(self.epoch)))))
+                    save_image(self.denorm(x_concat.data.cpu()), sample_path, nrow=1, padding=0)
+
                     print('Saved real and fake images into {}...'.format(self.sample_dir))
             # Save model checkpoints.
             if (e + 1) % self.save_step == 0 and (e + 1) >= self.save_start:
                 model_path = os.path.join(self.model_dir, '{}-model.ckpt'.format(e + 1))
-                torch.save(self.G.state_dict(), model_path)
+                torch.save(self.model.state_dict(), model_path)
                 print('Saved model checkpoints into {}...'.format(self.model_dir))
 
         print('Training is finished')
