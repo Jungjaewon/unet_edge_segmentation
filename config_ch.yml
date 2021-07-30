@@ -6,7 +6,7 @@ TRAINING_CONFIG:
 
   EPOCH: 100
   DOMAIN : 'ch' # bags
-  BATCH_SIZE: 64
+  BATCH_SIZE: 32
 
 
   # lr and lambda
