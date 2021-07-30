@@ -6,11 +6,11 @@ TRAINING_CONFIG:
 
   EPOCH: 100
   DOMAIN : 'ch' # bags
-  BATCH_SIZE: 32
+  BATCH_SIZE: 64
 
 
   # lr and lambda
-  LR : 5e-5
+  LR : 5e-6
   LAMBDA_CLS  : 1.0
 
   # Optimizer
@@ -26,7 +26,7 @@ TRAINING_CONFIG:
   USE_TENSORBOARD : 'False' # 'True' or 'False'
 
   # Directory
-  IMG_DIR : 'deep_paint_split' #'data'
+  IMG_DIR : 'paint_img' #'data'
   TRAIN_DIR : 'edge_segmentation_tutorial'
   LOG_DIR : 'logs'
   SAMPLE_DIR : 'samples'
