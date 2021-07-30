@@ -11,7 +11,7 @@ class DataSet(data.Dataset):
 
     def __init__(self, config, img_transform):
         self.img_transform = img_transform
-        self.img_dir = osp.join(config['TRAINING_CONFIG']['IMG_DIR'], config['TRAINING_CONFIG']['MODE'])
+        self.img_dir = osp.join(config['TRAINING_CONFIG']['IMG_DIR']) # , config['TRAINING_CONFIG']['MODE']
         self.img_size = (config['MODEL_CONFIG']['IMG_SIZE'], config['MODEL_CONFIG']['IMG_SIZE'], 3)
         self.domain = config['TRAINING_CONFIG']['DOMAIN']
 
