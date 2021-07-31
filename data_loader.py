@@ -14,6 +14,7 @@ class DataSet(data.Dataset):
         self.img_dir = osp.join(config['TRAINING_CONFIG']['IMG_DIR']) # , config['TRAINING_CONFIG']['MODE']
         self.img_size = (config['MODEL_CONFIG']['IMG_SIZE'], config['MODEL_CONFIG']['IMG_SIZE'], 3)
         self.domain = config['TRAINING_CONFIG']['DOMAIN']
+        self.target = config['TRAINING_CONFIG']['TARGET']
 
         if self.domain == 'ch':
             self.data_list = glob.glob(os.path.join(self.img_dir, '*.png'))
@@ -32,7 +33,11 @@ class DataSet(data.Dataset):
         else:
             image = Image.open(osp.join(self.img_dir, f'{file_name}.jpg')).convert('RGB')
             edge = Image.open(osp.join(self.img_dir, f'{file_name}_edge.jpg')).convert('RGB')
-        return self.img_transform(image), self.img_transform(edge)
+
+        if self.target == 'color':
+            return self.img_transform(edge), self.img_transform(image)
+        else:
+            return self.img_transform(image), self.img_transform(edge)
 
     def __len__(self):
         """Return the number of images."""

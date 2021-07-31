@@ -6,7 +6,7 @@ TRAINING_CONFIG:
 
   EPOCH: 100
   DOMAIN : 'ch' # bags
-  TARGET : 'edge' # color edge
+  TARGET : 'color' # color edge
   BATCH_SIZE: 16
 
 
@@ -28,7 +28,7 @@ TRAINING_CONFIG:
 
   # Directory
   IMG_DIR : 'paint_img' #'data'
-  TRAIN_DIR : 'edge_segmentation_tutorial'
+  TRAIN_DIR : 'color_segmentation_tutorial'
   LOG_DIR : 'logs'
   SAMPLE_DIR : 'samples'
   RESULT_DIR : 'results'

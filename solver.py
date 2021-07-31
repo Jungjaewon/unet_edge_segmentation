@@ -117,10 +117,10 @@ class Solver(object):
         print('iterations : ', iterations)
         # Fetch fixed inputs for debugging.
         data_iter = iter(data_loader)
-        fixed_image, fixed_edge = next(data_iter)
+        fixed_image, fixed_target = next(data_iter)
 
         fixed_image = fixed_image.to(self.gpu)
-        fixed_edge = fixed_edge.to(self.gpu)
+        fixed_target = fixed_target.to(self.gpu)
 
         start_epoch = self.restore_model()
         start_time = time.time()
@@ -129,18 +129,18 @@ class Solver(object):
 
             for i in range(iterations):
                 try:
-                    images, edge = next(data_iter)
+                    images, target = next(data_iter)
                 except:
                     data_iter = iter(data_loader)
-                    images, edge = next(data_iter)
+                    images, target = next(data_iter)
 
                 images = images.to(self.gpu)
-                edge = edge.to(self.gpu)
+                target = target.to(self.gpu)
 
                 loss_dict = dict()
 
                 pred_edge = self.model(images)
-                loss = self.loss(pred_edge, edge)
+                loss = self.loss(pred_edge, target)
 
                 self.reset_grad()
                 loss.backward()
@@ -160,7 +160,7 @@ class Solver(object):
                 with torch.no_grad():
                     image_report = list()
                     image_report.append(fixed_image)
-                    image_report.append(fixed_edge)
+                    image_report.append(fixed_target)
                     image_report.append(self.model(fixed_image))
                     x_concat = torch.cat(image_report, dim=3)
                     sample_path = osp.join(self.sample_dir, '{}-images.jpg'.format(str(e + 1).zfill(len(str(self.epoch)))))
